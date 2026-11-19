@@ -850,3 +850,25 @@ button,
 .pop-h .link {
   font-size: 11.5px;
 }
+.access-box p {
+  margin: 0 0 10px;
+}
+.row-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  text-decoration: none;
+}
+.row-btns a.btn {
+  text-decoration: none;
+}
+.sim-card .small-note {
+  font-size: 11.5px;
+  margin: 6px 0 0;
+}

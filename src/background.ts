@@ -1,8 +1,24 @@
-const VIEWER = chrome.runtime.getURL('viewer.html');
+import { PDF_LINK_PATTERNS, looksLikePdfUrl, viewerUrl } from './lib/pdfUrl';
 
-async function isEnabled(): Promise<boolean> {
+// The browser's built-in PDF viewer stays the default. Sci-Synth opens a PDF only when the user
+// asks for it (toolbar icon, context menu) or when the user put the site on the allowlist.
+
+const MENU_LINK = 'open-link-in-scisynth';
+const MENU_PAGE = 'open-page-in-scisynth';
+
+function hostKey(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? `${u.protocol}//${u.hostname}` : null;
+  } catch {
+    return null;
+  }
+}
+
+async function allowlist(): Promise<string[]> {
   const { settings } = await chrome.storage.local.get('settings');
-  return (settings as { autoIntercept?: boolean } | undefined)?.autoIntercept ?? true;
+  const list = (settings as { siteAllowlist?: unknown } | undefined)?.siteAllowlist;
+  return Array.isArray(list) ? (list as string[]) : [];
 }
 
 function isPdfResponse(d: chrome.webRequest.OnHeadersReceivedDetails): boolean {
@@ -15,52 +31,69 @@ function isPdfResponse(d: chrome.webRequest.OnHeadersReceivedDetails): boolean {
   return ct.includes('application/octet-stream') && /\.pdf($|[?#])/i.test(d.url);
 }
 
-const openViewer = (tabId: number, url: string) =>
-  chrome.tabs.update(tabId, { url: `${VIEWER}?file=${encodeURIComponent(url)}` });
+const openInTab = (tabId: number, url: string) => chrome.tabs.update(tabId, { url: viewerUrl(url) });
 
-async function redirectIfEnabled(tabId: number, url: string) {
-  if (await isEnabled()) await openViewer(tabId, url);
+async function onHeaders(d: chrome.webRequest.OnHeadersReceivedDetails) {
+  if (d.tabId < 0 || !isPdfResponse(d)) return;
+  const key = hostKey(d.url);
+  if (key && (await allowlist()).includes(key)) await openInTab(d.tabId, d.url);
 }
 
-// Redirect http(s) PDFs to our viewer (Edge's built-in viewer is closed to extensions).
-chrome.webRequest.onHeadersReceived.addListener(
-  (d) => {
-    if (d.tabId >= 0 && isPdfResponse(d)) void redirectIfEnabled(d.tabId, d.url);
-    return undefined;
-  },
-  { urls: ['http://*/*', 'https://*/*'], types: ['main_frame'] },
-  ['responseHeaders'],
-);
+// webRequest is an optional permission. It is requested only when the user adds a site to the
+// allowlist, and events fire only for hosts the user granted. Without it, nothing is intercepted.
+let listening = false;
+function listenIfPermitted() {
+  if (listening || !chrome.webRequest?.onHeadersReceived) return;
+  chrome.webRequest.onHeadersReceived.addListener(
+    (d) => {
+      void onHeaders(d);
+      return undefined;
+    },
+    { urls: ['http://*/*', 'https://*/*'], types: ['main_frame'] },
+    ['responseHeaders'],
+  );
+  listening = true;
+}
+listenIfPermitted();
+chrome.permissions.onAdded.addListener(listenIfPermitted);
 
-// Local file:// PDFs (requires "Allow access to file URLs").
-chrome.tabs.onUpdated.addListener((tabId, info) => {
-  const url = info.url;
-  if (url && /^file:\/\/.*\.pdf$/i.test(url.split(/[?#]/)[0])) {
-    void redirectIfEnabled(tabId, url);
-  }
-});
-
-chrome.action.onClicked.addListener(async (tab) => {
+/** Toolbar icon: open the current PDF in Sci-Synth, or an empty viewer on other pages. */
+async function openFromTab(tab: chrome.tabs.Tab) {
   const url = tab.url ?? '';
-  if (tab.id !== undefined && /^(https?|file):/.test(url) && /\.pdf($|[?#])/i.test(url)) {
-    await openViewer(tab.id, url);
-  } else {
-    await chrome.tabs.create({ url: VIEWER });
-  }
-});
+  if (tab.id !== undefined && looksLikePdfUrl(url)) await openInTab(tab.id, url);
+  else await chrome.tabs.create({ url: viewerUrl(), index: tab.index !== undefined ? tab.index + 1 : undefined });
+}
 
-chrome.runtime.onInstalled.addListener((d) => {
-  chrome.contextMenus.create({
-    id: 'open-link-in-explorer',
-    title: 'Open PDF in AI Explorer',
-    contexts: ['link'],
-    targetUrlPatterns: ['*://*/*.pdf', '*://*/*.pdf?*', 'file:///*.pdf'],
+async function onMenuClick(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) {
+  if (info.menuItemId === MENU_LINK && info.linkUrl) {
+    await chrome.tabs.create({ url: viewerUrl(info.linkUrl), index: tab ? tab.index + 1 : undefined });
+  } else if (info.menuItemId === MENU_PAGE) {
+    const url = info.frameUrl && looksLikePdfUrl(info.frameUrl) ? info.frameUrl : info.pageUrl;
+    if (!url) return;
+    if (tab?.id !== undefined) await openInTab(tab.id, url);
+    else await chrome.tabs.create({ url: viewerUrl(url) });
+  }
+}
+
+chrome.action.onClicked.addListener((tab) => void openFromTab(tab));
+chrome.contextMenus.onClicked.addListener((info, tab) => void onMenuClick(info, tab));
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: MENU_LINK,
+      title: 'Open in Sci-Synth',
+      contexts: ['link'],
+      targetUrlPatterns: PDF_LINK_PATTERNS,
+    });
+    chrome.contextMenus.create({
+      id: MENU_PAGE,
+      title: 'Open this PDF in Sci-Synth',
+      contexts: ['page', 'frame'],
+      documentUrlPatterns: PDF_LINK_PATTERNS,
+    });
   });
-  if (d.reason === 'install') void chrome.runtime.openOptionsPage();
 });
 
-chrome.contextMenus.onClicked.addListener((info) => {
-  if (info.menuItemId === 'open-link-in-explorer' && info.linkUrl) {
-    void chrome.tabs.create({ url: `${VIEWER}?file=${encodeURIComponent(info.linkUrl)}` });
-  }
-});
+// Entry points for automated tests (the UI paths above call the same functions).
+Object.assign(globalThis, { sciSynth: { openFromTab, onMenuClick, MENU_LINK, MENU_PAGE } });

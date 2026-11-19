@@ -6,8 +6,8 @@
 2. Select **OpenAI / OpenAI-compatible**, **Anthropic Claude**, **Google Gemini**, or **Ollama (local)**.
 3. Enter the model and base URL for the selected provider.
 4. Enter an API key for a hosted provider.
-5. Select **Test connection** to send a short test request.
-6. Select **Save** to store the settings.
+5. Select **Save** to store the settings. The browser asks for access to the provider's address; allow it.
+6. Select **Test connection** to send a short test request.
 
 The default provider is OpenAI, and its default model is `gpt-4o-mini`.
 Each provider keeps separate model, base URL, and API key settings.
@@ -16,15 +16,37 @@ Ollama does not require an API key, but it must accept the extension origin.
 
 ## Open a PDF
 
-- Open an HTTP or HTTPS PDF in a tab when **Open PDFs in AI Explorer automatically** is enabled.
-- Click the extension icon on a PDF tab, or select **Open PDF in AI Explorer** on a PDF link.
+The browser's built-in PDF viewer stays the default. Sci-Synth opens a PDF only when you ask:
+
+- Click the Sci-Synth toolbar icon on a PDF tab.
+- Right-click a PDF link and select **Open in Sci-Synth**.
+- Right-click on a PDF page and select **Open this PDF in Sci-Synth**.
 - Click **Open PDF** in the viewer, or drop a PDF file onto the viewer.
 - Enable **Allow access to file URLs** in the extension details to open `file://` PDFs directly.
 
-Automatic interception applies to successful, inline main-frame PDF responses.
-It also recognizes `.pdf` URLs returned as `application/octet-stream`.
-It does not intercept responses marked as attachments.
-The extension icon opens an empty viewer when the current tab does not contain a recognized PDF URL.
+The toolbar icon opens an empty viewer when the current tab does not show a recognized PDF address.
+A recognized address ends in `.pdf` or has a `/pdf/<id>` path, as on arxiv.org.
+
+### When a site blocks the viewer
+
+Some servers do not allow cross-origin reads. Then the viewer shows three choices:
+
+- **Allow access to *site***: the browser asks for access to that site only. Then the viewer loads the PDF with your cookies for that site.
+- **Open in the built-in viewer**: go back to the browser's viewer.
+- Download the PDF, then use **Open PDF**.
+
+### Always open PDFs from a site (optional)
+
+This option is off by default.
+
+1. Open a PDF from the site in Sci-Synth.
+2. In the **Document** panel, select **Always open PDFs from *site* in Sci-Synth**.
+3. Allow the permission request (site access and `webRequest`).
+
+You can also add or remove sites in the settings under **Sites that open in Sci-Synth**.
+Sci-Synth then opens successful, inline PDF responses from those sites only.
+It does not open responses marked as attachments.
+When you remove the last site, Sci-Synth gives the `webRequest` permission back.
 
 ## Read and ask
 
@@ -53,6 +75,18 @@ Select **Read with AI** in the **Document** panel to request a page transcriptio
 Disable AI page transcription, image-based explanations, and document briefs to avoid those automatic AI requests.
 Questions and explanations still send text to the configured endpoint.
 
+## Simulate (optional, local backend)
+
+The earlier prototype executed LLM-generated Python; that path is removed. A safe declarative solver is being added.
+
+1. Start the backend on your computer (see `simulator/README.md`).
+2. In the settings, set **Backend URL** (for example `http://localhost:8000`) and select **Save**.
+3. In the viewer, open **Document** and select **Extract equations**.
+
+The viewer sends the PDF to `{backend}/api/extract` and shows the returned manifest: equation type, variables and time span.
+**Run simulation** stays disabled until the safe solver is available.
+Use the backend only with PDFs that you trust. When **Backend URL** is empty, the feature is hidden.
+
 ## Manage local data
 
 Select **Clear cache** to remove cached documents, page data, and answers from IndexedDB.
@@ -63,7 +97,8 @@ They do not retract data already sent to an AI provider.
 ## Troubleshoot
 
 - If local files fail to open, enable **Allow access to file URLs** in the extension details.
-- If PDF loading fails, check access to the PDF URL and its server's cross-origin behavior.
+- If PDF loading fails, select **Allow access to *site*** or download the PDF and use **Open PDF**.
+- If AI requests fail after you change the base URL, select **Save** again and allow the access request.
 - If the connection test fails, check the selected provider, model, base URL, and API key.
 - If image transcription fails, select a vision-capable model or disable AI page transcription.
 - If old viewer tabs block the database, close those tabs and reopen the PDF.

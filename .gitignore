@@ -10,3 +10,6 @@ _private
 *.pfx
 *.crx
 *.zip
+__pycache__/
+*.pyc
+.venv/

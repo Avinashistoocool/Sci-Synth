@@ -39,7 +39,7 @@ function openWithTimeout(): Promise<IDBPDatabase<Schema> | null> {
       dbp = null;
     },
     blocked() {
-      console.warn('PDF AI Explorer: database upgrade blocked by another open viewer tab — close old tabs.');
+      console.warn('Sci-Synth: database upgrade blocked by another open viewer tab — close old tabs.');
     },
     terminated() {
       dbp = null;
@@ -59,7 +59,7 @@ function openWithTimeout(): Promise<IDBPDatabase<Schema> | null> {
   let t = 0;
   const timeout = new Promise<null>((res) => {
     t = window.setTimeout(() => {
-      console.warn('PDF AI Explorer: IndexedDB did not open in time — running without cache. Close other viewer tabs.');
+      console.warn('Sci-Synth: IndexedDB did not open in time — running without cache. Close other viewer tabs.');
       res(null);
     }, DB_TIMEOUT_MS);
   });

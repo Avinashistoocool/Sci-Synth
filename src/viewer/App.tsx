@@ -1,4 +1,4 @@
-import { GlobalWorkerOptions, getDocument, type PDFDocumentProxy, type PageViewport } from 'pdfjs-dist';
+﻿import { GlobalWorkerOptions, getDocument, type PDFDocumentProxy, type PageViewport } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cropRegion } from '../lib/crop';
@@ -8,11 +8,22 @@ import type { Box, PageData } from '../lib/extract';
 import { DoubtGraph, visibleAnswer, type ThoughtNode } from '../lib/graph';
 import { isImageUnsupported, streamChat } from '../lib/llm';
 import { tutorSystemPrompt, tutorUserPrompt } from '../lib/prompts';
-import { activeConfig, isConfigured, loadSettings, onSettingsChanged, type Settings } from '../lib/settings';
+import {
+  activeConfig,
+  hasAccess,
+  isConfigured,
+  loadSettings,
+  onSettingsChanged,
+  requestAccess,
+  saveSettings,
+  siteKey,
+  type Settings,
+} from '../lib/settings';
 import { GRANULARITIES, KIND_LABEL, pickTarget, type Granularity, type Target, type TargetKind } from '../lib/target';
 import { ConceptList, DoubtTree } from './DoubtsPanel';
 import { ConceptChips, Md, ThreadView, type PendingAsk } from './Thread';
 import { PageView } from './PageView';
+import { SimulatePanel } from './SimulatePanel';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 
@@ -62,6 +73,7 @@ export function App() {
   const [doc, setDoc] = useState<DocContext | null>(null);
   const [title, setTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [needAccess, setNeedAccess] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [scale, setScale] = useState(1.25);
   const [baseSize, setBaseSize] = useState({ w: 612, h: 792 });
@@ -142,6 +154,7 @@ export function App() {
   const openPdf = useCallback(
     async (src: { url: string } | { data: ArrayBuffer; name: string }) => {
       setError(null);
+      setNeedAccess(null);
       setPdf(null);
       setDoc(null);
       setPopover(null);
@@ -154,8 +167,11 @@ export function App() {
       setAiState({ busy: [], done: 0 });
       setProgress(0);
       try {
+        // With host access the viewer sends cookies (needed for signed-in PDFs).
+        // Without it, a plain CORS request still works for servers such as arxiv.org.
+        const granted = 'url' in src && (await hasAccess(src.url));
         const task = getDocument({
-          ...('url' in src ? { url: src.url, withCredentials: true } : { data: new Uint8Array(src.data) }),
+          ...('url' in src ? { url: src.url, withCredentials: granted } : { data: new Uint8Array(src.data) }),
           cMapUrl: chrome.runtime.getURL('cmaps/'),
           cMapPacked: true,
           standardFontDataUrl: chrome.runtime.getURL('standard_fonts/'),
@@ -168,7 +184,7 @@ export function App() {
         const metaTitle = ((meta?.info as Record<string, unknown> | undefined)?.Title as string | undefined)?.trim();
         const name = 'url' in src ? fileNameFromUrl(src.url) : src.name;
         const t = metaTitle && metaTitle.length > 3 ? metaTitle : name;
-        document.title = `${t} – PDF AI Explorer`;
+        document.title = `${t} – Sci-Synth`;
         setTitle(t);
 
         const first = (await p.getPage(1)).getViewport({ scale: 1 });
@@ -183,11 +199,16 @@ export function App() {
         setDoc(ctx);
       } catch (e) {
         const msg = (e as Error).message || String(e);
-        setError(
-          fileParam?.startsWith('file:') && /fetch|network|load/i.test(msg)
-            ? `Couldn't read the local file. Enable "Allow access to file URLs" for this extension in edge://extensions. (${msg})`
-            : msg,
-        );
+        const remote = 'url' in src && /^https?:/.test(src.url);
+        if (remote && !(await hasAccess(src.url))) {
+          setNeedAccess(src.url);
+        } else {
+          setError(
+            fileParam?.startsWith('file:') && /fetch|network|load/i.test(msg)
+              ? `Couldn't read the local file. Enable "Allow access to file URLs" for Sci-Synth on the browser's extensions page, or use "Open PDF". (${msg})`
+              : msg,
+          );
+        }
       } finally {
         setProgress(null);
       }
@@ -787,7 +808,7 @@ export function App() {
       }}
     >
       <header className="toolbar">
-        <div className="brand">✦ PDF AI Explorer</div>
+        <div className="brand">✦ Sci-Synth</div>
         <div className="title" title={title}>
           {title}
         </div>
@@ -872,10 +893,35 @@ export function App() {
           onMouseUp={() => keyHeld.current && explainSelection()}
         >
           {error && <div className="error-box">⚠ {error}</div>}
-          {!pdf && !error && progress === null && (
+          {needAccess && (
+            <div className="error-box access-box">
+              <p>
+                Sci-Synth cannot read this PDF from <b>{siteKey(needAccess)}</b> without your permission. The site does not
+                allow cross-origin reads.
+              </p>
+              <div className="row-btns">
+                <button
+                  className="btn primary"
+                  onClick={async () => {
+                    if (await requestAccess([needAccess])) void openPdf({ url: needAccess });
+                  }}
+                >
+                  Allow access to {siteKey(needAccess)?.replace(/^https?:\/\//, '')}
+                </button>
+                <a className="btn" href={needAccess}>
+                  Open in the built-in viewer
+                </a>
+              </div>
+              <p className="muted">Or download the PDF and use “Open PDF”. The access applies to this site only.</p>
+            </div>
+          )}
+          {!pdf && !error && !needAccess && progress === null && (
             <div className="empty">
               <h2>Drop a PDF here</h2>
-              <p>or use “Open PDF”. PDFs you open in Edge are redirected here automatically.</p>
+              <p>
+                or use “Open PDF”. On a PDF tab, click the Sci-Synth toolbar icon, or right-click and select “Open this
+                PDF in Sci-Synth”. The browser's own PDF viewer stays the default.
+              </p>
               <p className="muted">
                 Then hold <kbd>{triggerLabel}</kbd> and point at a word, sentence, equation or figure.
               </p>
@@ -1116,6 +1162,8 @@ export function App() {
                   {brief.status === 'error' && <p className="err">{brief.error}</p>}
                   {brief.status === 'ready' && <pre className="brief">{brief.text}</pre>}
                 </div>
+                {settings && fileParam && siteKey(fileParam) && <SiteToggle settings={settings} site={siteKey(fileParam)!} />}
+                {pdf && settings && <SimulatePanel pdf={pdf} backendUrl={settings.simBackendUrl} />}
               </>
             )}
           </aside>
@@ -1219,6 +1267,38 @@ function Popover({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Opt-in per-site rule: "Always open PDFs from this site in Sci-Synth". Off by default. */
+function SiteToggle({ settings, site }: { settings: Settings; site: string }) {
+  const on = settings.siteAllowlist.includes(site);
+  const [msg, setMsg] = useState('');
+  const toggle = async (want: boolean) => {
+    if (want) {
+      // Request first, while the click still counts as a user gesture.
+      if (!(await requestAccess([`${site}/`], ['webRequest']))) {
+        setMsg('Permission not granted. Nothing changed.');
+        return;
+      }
+      setMsg('');
+      await saveSettings({ ...settings, siteAllowlist: [...settings.siteAllowlist, site] });
+    } else {
+      await saveSettings({ ...settings, siteAllowlist: settings.siteAllowlist.filter((x) => x !== site) });
+    }
+  };
+  return (
+    <div className="card">
+      <div className="card-h">
+        <span>This site</span>
+      </div>
+      <label className="mini-check">
+        <input type="checkbox" checked={on} onChange={(e) => void toggle(e.target.checked)} />
+        Always open PDFs from {site.replace(/^https?:\/\//, '')} in Sci-Synth
+      </label>
+      <p className="muted small">Off by default. Other sites keep the browser's PDF viewer.</p>
+      {msg && <p className="err">{msg}</p>}
     </div>
   );
 }
