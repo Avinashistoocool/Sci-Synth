@@ -1,0 +1,12 @@
+node_modules
+dist
+_private
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crx
+*.zip
