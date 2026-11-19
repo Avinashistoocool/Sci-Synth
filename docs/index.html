@@ -10,8 +10,15 @@
 <meta property="og:title" content="Sci-Synth — explain scientific PDFs in place">
 <meta property="og:description" content="Browser extension: hold Alt over a word, equation, figure or scanned region in a PDF and read an explanation from the AI provider you configure. The built-in PDF viewer stays the default.">
 <meta property="og:url" content="https://avinashistoocool.github.io/Sci-Synth/">
+<meta property="og:image" content="https://avinashistoocool.github.io/Sci-Synth/github-social-1280x640.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Sci-Synth: Hover any line of a paper. Understand it.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#143040">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%23143040'/%3E%3Crect x='15' y='10' width='29' height='44' rx='4' fill='%23f0ece0'/%3E%3Cpath d='M19 45 q6 -14 12 -4 t12 -3' stroke='%23e87830' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M48 10 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5z' fill='%23ffc446'/%3E%3C/svg%3E">
+<link rel="icon" href="./favicon.ico" sizes="any">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
 :root{
   --ink:#14232c; --paper:#f3efe4; --paper-2:#e9e3d2; --rule:#c9c0a8; --teal:#143040; --teal-2:#1f4c63;
@@ -32,6 +39,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--amber);outline-offs
 nav.top,footer{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:12px clamp(16px,4vw,40px);font:15px/1.4 var(--sans);background:var(--teal);color:#e9eef0}
 nav.top a,footer a{color:#e9eef0;text-decoration:none}
 nav.top a:hover,footer a:hover{text-decoration:underline}
+nav.top .brand{display:inline-flex;align-items:center;margin-right:6px}nav.top .brand img{height:30px;width:auto;display:block}
 nav.top .sp,footer .sp{flex:1}
 main{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 40px}
 header.hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px;align-items:center;padding:56px 0 30px}
@@ -87,6 +95,7 @@ ul.plain{padding-left:20px;margin:6px 0 0}
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <nav class="top" aria-label="Site">
+  <a class="brand" href="./" aria-label="Sci-Synth home"><img src="./brand/sci-synth-horizontal-dark.svg" alt="Sci-Synth" width="131" height="30"></a>
   <a href="https://avinashistoocool.github.io/">← avinash</a>
   <a href="https://avinashistoocool.github.io/projects/">All projects</a>
   <span class="sp"></span>

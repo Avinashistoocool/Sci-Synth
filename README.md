@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/sci-synth-horizontal-dark.svg">
+    <img src="docs/brand/sci-synth-horizontal.svg" alt="Sci-Synth" height="72">
+  </picture>
+  <br><em>Hover any line of a paper. Understand it.</em>
+</p>
+
 # Sci-Synth
 
 Sci-Synth is a Manifest V3 browser extension that helps you read scientific PDFs.

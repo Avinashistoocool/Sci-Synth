@@ -28,13 +28,16 @@ Compress-Archive -Path dist\* -DestinationPath sci-synth-1.0.0.zip -Force
 | Name | "Sci-Synth" | Ready |
 | Short description | Up to 132 characters; the manifest description is used | Ready |
 | Detailed description | What it does, the opt-in viewer, BYO AI key, no analytics | To write (use the README) |
-| Icon | 128x128 PNG | `public/icons/icon128.png` (simple generated icon; consider a designed one) |
+| Icon | 128x128 PNG | Ready: `public/icons/icon128.png` (same as `docs/brand/sci-synth-mark-128.png`) |
 | Screenshots | 1 to 5, 1280x800 or 640x400 | To do (real screenshots of the viewer and settings) |
-| Small promo tile | 440x280 PNG | To do |
+| Small promo tile | 440x280 PNG | Ready: `docs/brand/promo-small-440x280.png` |
+| Marquee promo tile | 1400x560 PNG (optional) | Ready: `docs/brand/marquee-1400x560.png` |
 | Category | Education or Productivity | To choose |
 | Language | English | Ready |
 | Homepage | <https://avinashistoocool.github.io/Sci-Synth/> | Ready |
 | Support URL | <https://github.com/Avinashistoocool/Sci-Synth/issues> | Ready |
+
+Brand assets: `docs/brand/` (see `docs/brand/README.md` for colours, font and clear space). Dark versions of the tiles and the source files are kept outside the repository with the rest of the brand kit.
 
 ## 4. Single purpose
 
@@ -82,8 +85,8 @@ Suggested statement:
 | `webRequest` | Optional; requested only for the allowlist. | If the reviewer objects, remove the allowlist feature and the `webRequest` entry; the toolbar and menu still work. |
 | Taking over the PDF viewer | Not done; the built-in viewer stays the default. | None. |
 | Simulator | Not part of the extension package; the feature is hidden unless the user sets a local URL. The backend runs a fixed SciPy solver on a validated JSON spec and never executes model-written code. | Mention it in the description only as an optional local developer tool, or not at all. |
-| Missing assets | – | Screenshots (1280x800), 440x280 promo tile, detailed description. |
-| Icon quality | Simple generated icon. | Optional: replace with a designed icon. |
+| Missing assets | Icon, 440x280 promo tile and 1400x560 marquee are ready in `docs/brand/`. | Screenshots (1280x800) and detailed description. |
+| Icon quality | Designed mark (page + integral), with a pixel-hinted 16 px version. | None. |
 
 ## 10. After publication
 
