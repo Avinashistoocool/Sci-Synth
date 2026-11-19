@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.pdf
+*.pem
+*.key
+node_modules/
+.next/
