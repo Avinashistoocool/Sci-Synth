@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import sys
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from groq import Groq
 
@@ -104,36 +103,6 @@ def _fix_code(code: str, error: str) -> str:
     return _clean_code(_chat(prompt))
 
 
-def _run_code(code: str) -> dict:
-    """Execute the generated script in a stripped subprocess. Returns
-    {"success": True, "lines": [...]} or {"success": False, "error": "..."}."""
-    # Provide only the minimal environment needed for Python to execute.
-    # On Windows SYSTEMROOT / TEMP are required for the stdlib to load.
-    safe_env = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "TEMP", "TMP") if k in os.environ}
-
-    try:
-        proc = subprocess.run(
-            [sys.executable, "-c", code],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            env=safe_env,
-        )
-    except subprocess.TimeoutExpired:
-        return {"success": False, "error": "Simulation timed out after 30 seconds."}
-
-    if proc.returncode != 0:
-        # Include stderr in the error message, falling back to the exit code.
-        # We deliberately do NOT fail on stderr alone: scipy/numpy routinely emit
-        # IntegrationWarning / RuntimeWarning to stderr while still exiting 0 and
-        # producing valid output.  Treating warnings as errors would cause the
-        # retry loop to burn three API calls and then surface a false failure.
-        return {"success": False, "error": proc.stderr or f"Exit code {proc.returncode}"}
-
-    lines = [ln for ln in proc.stdout.splitlines() if ln.strip()]
-    return {"success": True, "lines": lines}
-
-
 # ---------------------------------------------------------------------------
 # Endpoint
 # ---------------------------------------------------------------------------
@@ -141,28 +110,11 @@ def _run_code(code: str) -> dict:
 
 @router.post("/api/simulate")
 def simulate(manifest: Manifest) -> StreamingResponse:
-    def generate():
-        code = _generate_code(manifest)
-        error: str | None = None
-
-        for attempt in range(_MAX_RETRIES):
-            result = _run_code(code)
-
-            if result["success"]:
-                for line in result["lines"]:
-                    yield line + "\n"
-                return
-
-            error = result["error"]
-            if attempt < _MAX_RETRIES - 1:
-                try:
-                    code = _fix_code(code, error)
-                except Exception as exc:
-                    error = f"Groq fix call failed: {exc}"
-                    break
-
-        # All retries exhausted — surface the last error to the frontend
-        yield json.dumps({"error": error}) + "\n"
-        yield "DONE\n"
-
-    return StreamingResponse(generate(), media_type="application/x-ndjson")
+    # Security hot-fix: the earlier version executed LLM-generated Python, so a
+    # crafted PDF could run code on the host. That path is disabled. A
+    # declarative solver (JSON equation spec -> whitelisted parser -> fixed
+    # SciPy integrator) will replace it.
+    raise HTTPException(
+        status_code=501,
+        detail="Simulation is disabled pending a safe solver (no LLM-generated code is executed).",
+    )
