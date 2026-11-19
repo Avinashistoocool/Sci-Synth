@@ -1,7 +1,7 @@
 # Architecture and data flow
 
 Sci-Synth builds a Manifest V3 extension with a background service worker, settings page, and PDF viewer.
-An optional local FastAPI backend in `simulator/backend/` extracts equation manifests from PDFs.
+An optional local FastAPI backend in `simulator/backend/` extracts an ODE spec from a PDF and integrates it with a fixed solver.
 Vite writes these entry points to `dist`, and TypeScript checks the source during `npm run build`.
 The build copies PDF.js maps and fonts, Tesseract workers, WASM files, and English language data.
 
@@ -34,9 +34,36 @@ The extension has no project-operated AI proxy.
 ## Optional simulator
 
 `src/viewer/SimulatePanel.tsx` appears only when the user sets `simBackendUrl`.
-It posts the PDF bytes to `{backend}/api/extract` and shows the returned `Manifest` as JSON.
-`POST /api/simulate` returns HTTP 501: the earlier prototype executed LLM-generated Python; that path is removed.
-A safe declarative solver (JSON equation spec, whitelisted parser, fixed SciPy integrator) is being added in `simulator/backend/routes/simulate.py`.
+It posts the PDF bytes to `{backend}/api/extract` and receives `{spec, review}`: a validated `OdeSpec`
+(`simulator/backend/models.py`, `spec_version: 1`) and optional advisory reviewer warnings.
+The panel shows the equations, parameters, initial values and time span before anything runs.
+**Run simulation** posts the spec to `{backend}/api/simulate` and plots the NDJSON `{"t","x","y"}` stream, which ends with `DONE`.
+
+Backend pipeline (`simulator/backend/`):
+
+1. `routes/extract.py`: PDF (<= 20 MB, <= 60 pages) -> text (<= 60 000 characters, wrapped in untrusted-data
+   delimiters) -> Groq in JSON mode -> strict `OdeSpec` validation. Invalid output gives HTTP 422.
+2. `safe_expr.py`: each right-hand side is parsed with `ast.parse(mode="eval")`, checked against an allow-list of
+   node types, names and 15 math functions, and compiled into numpy closures. No `eval`, `exec` or `compile`.
+3. `solver.py`: `scipy.integrate.solve_ivp` (LSODA or RK45) with `max_step`, a 5 s wall-clock limit, an
+   evaluation cap and stop conditions for non-finite or exploding states.
+4. `review.py` (optional, `SCISYNTH_REVIEW=1`): a second LLM call that sees only the validated spec and returns
+   warnings. Its output never reaches the parser or solver.
+
+### Security model
+
+- **Threat:** a malicious PDF injects instructions into the extraction prompt. The earlier prototype executed
+  LLM-generated Python, so this could lead to code execution. That path is removed.
+- **Deterministic controls:** strict JSON schema; allow-listed AST (no attributes, subscripts, strings, lambdas,
+  comprehensions, keyword arguments, unknown names or non-ASCII); no execution of model output; resource limits
+  (expression length and node count, exponent bound, state and parameter counts, time span, output points, solver time
+  and evaluations, one solve at a time); bind to `127.0.0.1`; CORS restricted to extension and localhost origins.
+  `/api/simulate` re-validates the spec it receives.
+- **Why the reviewer LLM is advisory:** an LLM that checks LLM output can be prompt-injected by the same document, is
+  probabilistic and can miss obfuscated payloads. It is useful for physics plausibility hints, not as a security boundary.
+- **Remaining risks:** CPU use up to the limits per request; a valid but physically wrong system (the user sees the
+  exact equations before running); PDF text sent to Groq.
+
 The backend allows CORS from `chrome-extension://` origins and localhost only.
 
 ## Local storage and privacy

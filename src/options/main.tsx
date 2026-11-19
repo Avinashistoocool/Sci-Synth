@@ -213,9 +213,9 @@ function Options() {
       <section>
         <h2>Simulate (optional, local backend)</h2>
         <p className="warn">
-          ⚠ The earlier prototype executed LLM-generated Python; that path is removed. A safe declarative solver is being
-          added. Today the backend only extracts an equation manifest from the PDF. Run the backend only on your own
-          computer (127.0.0.1) and only with PDFs you trust.
+          ⚠ The backend never runs code written by the model. It asks the model for a JSON equation spec, checks every
+          expression against a fixed list of math operations, and integrates it with SciPy under time limits. Run the
+          backend only on your own computer (127.0.0.1).
         </p>
         <label>
           Backend URL (empty = feature off)

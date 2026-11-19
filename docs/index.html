@@ -181,10 +181,17 @@ ul.plain{padding-left:20px;margin:6px 0 0}
 <section aria-labelledby="sim">
   <h2 id="sim"><span class="n">06</span>Optional simulator (local backend)</h2>
   <div class="warn" role="note">
-    <p><strong>Security note.</strong> The earlier prototype executed LLM-generated Python; that path is removed. A safe declarative solver is being added. <code>POST /api/simulate</code> now returns HTTP 501, and no LLM-generated code is executed.</p>
-    <p style="margin:0">Run the backend only on your own computer (<code>127.0.0.1</code>) and only with PDFs that you trust. It sends PDF text to the Groq API with your key.</p>
+    <p><strong>Security model.</strong> The backend never executes code written by a model. The earlier prototype asked the LLM for Python and ran it, so a malicious PDF could inject instructions and run commands; that path is removed.</p>
+    <p style="margin:0">Run the backend only on your own computer (<code>127.0.0.1</code>). It sends PDF text to the Groq API with your key.</p>
   </div>
-  <p style="margin-top:14px"><code>simulator/backend/</code> is a FastAPI service from the first Sci-Synth prototype. Today, <code>POST /api/extract</code> returns an equation manifest (equation type, variables, time span). The extension shows it only if you set a backend URL in the settings; the default is empty and the feature is hidden. The earlier Next.js frontend is retired; the extension replaces it.</p>
+  <p style="margin-top:14px"><code>simulator/backend/</code> is an optional FastAPI service. The extension uses it only if you set a backend URL in the settings; the default is empty and the feature is hidden.</p>
+  <ol>
+    <li><b>Extract.</b> The LLM reads the PDF text (wrapped as untrusted data, at most 60&#8239;000 characters) and must return a JSON equation spec: state variables, parameters, right-hand sides as math expressions, initial values, time span.</li>
+    <li><b>Validate, without an LLM.</b> The spec must match a strict schema. Each expression is parsed with Python&rsquo;s <code>ast</code> and checked against an allow-list: <code>+ - * /</code>, constant powers up to 10, numbers, declared names, <code>t</code>, <code>pi</code>, <code>e</code> and 15 math functions. Attributes, subscripts, strings, lambdas, other calls and unknown names are rejected with HTTP 422. The checked tree is built into numpy functions; nothing goes to <code>eval</code> or <code>exec</code>.</li>
+    <li><b>Show.</b> The viewer lists the exact equations and parameters before anything runs.</li>
+    <li><b>Solve.</b> <b>Run simulation</b> sends the spec to SciPy&rsquo;s <code>solve_ivp</code> (LSODA or RK45) with a 5&#8239;s time limit, an evaluation cap and at most 5000 points, and plots the result.</li>
+  </ol>
+  <p>A second LLM can act as an optional <b>physics reviewer</b> (<code>SCISYNTH_REVIEW=1</code>, off by default). It reads only the validated spec and returns warnings about units or signs. It is advisory: it cannot change what runs and is not a security control, because a model that checks model output can be misled by the same document. Remaining risks: a valid but physically wrong system (compare the shown equations with the paper) and CPU use up to the limits.</p>
 </section>
 
 <section aria-labelledby="run">
@@ -213,7 +220,7 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000</pre>
     <li>Answer quality depends on the model. Text-only models cannot read equations or figures as images.</li>
     <li>Local OCR is English-only and weak on handwriting.</li>
     <li>Some PDF hosts block cross-origin reads; then Sci-Synth asks for access to that site, or you download the file.</li>
-    <li>The simulator runs no simulations until the safe solver is added.</li>
+    <li>The simulator handles systems of ordinary differential equations only (up to 8 state variables). The LLM can misread the paper; check the equations it shows.</li>
   </ul>
 </section>
 

@@ -16,7 +16,7 @@ Sci-Synth sends PDF content only to the AI provider that you configure, and only
 | PDF content: text excerpts near the item that you point at, your questions, earlier answers in the same thread, sampled page text for the document brief, and (if enabled) images of a page region or a scanned page | The AI provider endpoint that you configure (for example OpenAI, Anthropic, Google Gemini, an OpenAI-compatible service, or a local Ollama server) | To create the explanations, answers, page transcriptions and the document brief. |
 | Extracted page text, cached answers, document briefs, doubt notes and concept notes | IndexedDB in your browser profile | To make repeat questions fast and keep your notes. |
 | The PDF file | Read by the viewer from the PDF's address or from the file that you open | To show the PDF. Sci-Synth does not store the original PDF file. |
-| The PDF file (optional simulator only) | The simulator backend address that you set, normally `http://localhost` on your own computer | Only if you set a backend URL and select **Extract equations**. The backend that you run sends the PDF text to the Groq API with your own key. |
+| The PDF file (optional simulator only) | The simulator backend address that you set, normally `http://localhost` on your own computer | Only if you set a backend URL and select **Extract equations**. The backend that you run sends the PDF text to the Groq API with your own key. If you enable its optional reviewer, it also sends the extracted equation spec to Groq. |
 
 Sci-Synth does not sell data, does not use data for advertising or credit decisions, and does not transfer data to anyone other than the services that you configure.
 Your AI provider handles the data that it receives under its own privacy policy.

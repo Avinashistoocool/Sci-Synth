@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.extract import router as extract_router
 from routes.simulate import router as simulate_router
+import review
 
 app = FastAPI(title="Sci-Synth simulator (local)")
 
@@ -36,4 +37,4 @@ app.include_router(simulate_router)
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "simulate": "disabled"}
+    return {"status": "ok", "simulate": "safe-solver", "spec_version": 1, "review": review.enabled()}

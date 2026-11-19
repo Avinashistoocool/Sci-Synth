@@ -69,18 +69,35 @@ Read the full [privacy policy](docs/PRIVACY.md).
 
 ## Optional: Simulate (local backend)
 
-> **Security note.** The earlier prototype executed LLM-generated Python; that path is removed. A safe declarative solver is being added.
-> `POST /api/simulate` now returns HTTP 501. No LLM-generated code is executed.
+`simulator/backend/` holds an optional FastAPI backend. The extension uses it only if you set **Backend URL** in the settings.
+The default is empty, and then the feature is hidden.
 
-`simulator/backend/` holds an optional FastAPI backend from the earlier Sci-Synth prototype.
-Today it only extracts an equation manifest (equation type, variables, time span) from a PDF with the Groq API.
-The extension uses it only if you set **Backend URL** in the settings. The default is empty, and then the feature is hidden.
+1. **Extract equations** sends the PDF to the backend. The backend asks the Groq API for a JSON equation spec
+   (state variables, parameters, right-hand sides as math expressions, initial values, time span) and validates it.
+2. The viewer shows exactly the equations and parameters that will be solved, plus optional reviewer warnings.
+3. **Run simulation** sends that spec back; a fixed SciPy solver integrates it and the viewer plots the result.
 
-- Run the backend only on your own computer (it binds to `127.0.0.1`) and only with PDFs that you trust.
-- The backend sends the PDF text to Groq with your Groq key.
-- CORS allows only `chrome-extension://` origins and `http://localhost` / `http://127.0.0.1`. Set `SCISYNTH_EXTENSION_ID` to allow only your extension.
+Run the backend only on your own computer (it binds to `127.0.0.1`). It sends the PDF text to Groq with your Groq key.
 
-See [simulator/README.md](simulator/README.md) for setup.
+### Security model
+
+- **Threat:** a malicious PDF can contain instructions for the LLM (prompt injection). The earlier prototype asked the
+  LLM for Python and ran it, so a PDF could run commands. That path is removed; **no model-written code is executed.**
+- **Enforced without any LLM:** the reply must validate as a strict JSON spec (types, sizes, ranges, no extra fields).
+  Each expression is parsed with Python's `ast` and checked against an allow-list (`+ - * /`, constant powers |p| <= 10,
+  numbers, declared names, `t`, `pi`, `e`, 15 math functions). Everything else (attributes, subscripts, other function
+  calls, strings, lambdas, ...) gives HTTP 422. The checked tree becomes numpy closures; nothing is passed to `eval`,
+  `exec` or `compile`. The solver has a 5 s time limit, an evaluation cap, `max_step`, at most 5000 output points, and
+  stops on non-finite or exploding values. The server binds to `127.0.0.1`; CORS allows only extension and localhost
+  origins (`SCISYNTH_EXTENSION_ID` limits it to one extension).
+- **Why not a "guard" LLM that inspects generated code?** It reads the same attacker-controlled text, can itself be
+  prompt-injected, is probabilistic, and can miss obfuscated payloads. Not executing model output removes the risk instead.
+- **Optional reviewer LLM (`SCISYNTH_REVIEW=1`, off by default):** reads only the validated spec and returns
+  plausibility warnings (units, signs) that the viewer shows. It is advisory, cannot change what runs, and is not a security control.
+- **Remaining risks:** heavy compute (bounded by the limits above); a valid but wrong system, so check the shown
+  equations against the paper; the PDF text goes to Groq.
+
+See [simulator/backend/README.md](simulator/backend/README.md) for setup, tests and details.
 
 The earlier Next.js frontend is not part of this repository any more. The extension replaces it.
 Its sanitized source remains on the branch `docs/ste100-sanitized-source`.

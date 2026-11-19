@@ -77,15 +77,19 @@ Questions and explanations still send text to the configured endpoint.
 
 ## Simulate (optional, local backend)
 
-The earlier prototype executed LLM-generated Python; that path is removed. A safe declarative solver is being added.
+The backend never executes code written by the model. It asks the model for a JSON equation spec, checks every
+expression against a fixed list of math operations, and integrates it with SciPy under time limits.
 
-1. Start the backend on your computer (see `simulator/README.md`).
+1. Start the backend on your computer (see `simulator/backend/README.md`).
 2. In the settings, set **Backend URL** (for example `http://localhost:8000`) and select **Save**.
 3. In the viewer, open **Document** and select **Extract equations**.
+4. Read the equations, parameters, initial values and time span that the card shows. If the optional reviewer is
+   on (`SCISYNTH_REVIEW=1`), its warnings appear below; they are advisory and may be wrong.
+5. Select **Run simulation**. The card plots the second `plot` variable against the first.
+   If the run stops early (time limit, divergence), the card says so.
 
-The viewer sends the PDF to `{backend}/api/extract` and shows the returned manifest: equation type, variables and time span.
-**Run simulation** stays disabled until the safe solver is available.
-Use the backend only with PDFs that you trust. When **Backend URL** is empty, the feature is hidden.
+The model can misread the paper; compare the equations with the paper before you rely on the plot.
+When **Backend URL** is empty, the feature is hidden.
 
 ## Manage local data
 

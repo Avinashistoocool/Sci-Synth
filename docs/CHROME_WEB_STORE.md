@@ -81,7 +81,7 @@ Suggested statement:
 | Broad host permissions | No required host access; `http://*/*` and `https://*/*` are optional and requested per site. | Be ready to explain the per-site requests. Consider listing the common provider hosts explicitly. |
 | `webRequest` | Optional; requested only for the allowlist. | If the reviewer objects, remove the allowlist feature and the `webRequest` entry; the toolbar and menu still work. |
 | Taking over the PDF viewer | Not done; the built-in viewer stays the default. | None. |
-| Simulator | Not part of the extension package; the feature is hidden unless the user sets a local URL. `/api/simulate` is disabled (HTTP 501). | Mention it in the description only as an optional local developer tool, or not at all. |
+| Simulator | Not part of the extension package; the feature is hidden unless the user sets a local URL. The backend runs a fixed SciPy solver on a validated JSON spec and never executes model-written code. | Mention it in the description only as an optional local developer tool, or not at all. |
 | Missing assets | – | Screenshots (1280x800), 440x280 promo tile, detailed description. |
 | Icon quality | Simple generated icon. | Optional: replace with a designed icon. |
 
