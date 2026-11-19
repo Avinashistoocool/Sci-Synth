@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sci-Synth — a PDF reader extension that explains scientific papers</title>
 <meta name="description" content="Sci-Synth is a Manifest V3 browser extension. Open a PDF in its viewer, hold Alt over text, equations or figures, and get explanations from your own AI provider. Opt-in viewer, no analytics.">
+<meta name="author" content="Avinash Chandra Gupta">
 <link rel="canonical" href="https://avinashistoocool.github.io/Sci-Synth/">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Avinash Chandra Gupta">
 <meta property="og:title" content="Sci-Synth — explain scientific PDFs in place">
 <meta property="og:description" content="Browser extension: hold Alt over a word, equation, figure or scanned region in a PDF and read an explanation from the AI provider you configure. The built-in PDF viewer stays the default.">
 <meta property="og:url" content="https://avinashistoocool.github.io/Sci-Synth/">
@@ -91,6 +93,49 @@ pre{background:var(--teal);color:#eef3f4;font:14px/1.55 var(--mono);padding:14px
 ul.plain{padding-left:20px;margin:6px 0 0}
 .links a{display:inline-block;margin:4px 14px 4px 0}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://avinashistoocool.github.io/Sci-Synth/#webpage",
+      "url": "https://avinashistoocool.github.io/Sci-Synth/",
+      "name": "Sci-Synth — a PDF reader extension that explains scientific papers",
+      "author": {
+        "@id": "https://avinashistoocool.github.io/#person"
+      },
+      "mainEntity": {
+        "@id": "https://avinashistoocool.github.io/Sci-Synth/#software"
+      }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://avinashistoocool.github.io/Sci-Synth/#software",
+      "name": "Sci-Synth",
+      "description": "Browser extension (MV3) that explains scientific PDFs: hold Alt over text, equations or figures and ask your own AI provider. Opt-in viewer, no analytics.",
+      "url": "https://avinashistoocool.github.io/Sci-Synth/",
+      "codeRepository": "https://github.com/Avinashistoocool/Sci-Synth",
+      "programmingLanguage": "TypeScript",
+      "author": {
+        "@id": "https://avinashistoocool.github.io/#person"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://avinashistoocool.github.io/#person",
+      "name": "Avinash Chandra Gupta",
+      "url": "https://avinashistoocool.github.io/",
+      "sameAs": [
+        "https://github.com/Avinashistoocool",
+        "https://www.linkedin.com/in/avinashistoocool",
+        "https://x.com/suprcoolavinash",
+        "https://buymeacoffee.com/avinashistoocool"
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -251,6 +296,7 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000</pre>
   <span class="sp"></span>
   <a href="./privacy.html">Privacy</a>
   <a href="https://github.com/Avinashistoocool/Sci-Synth">Source ↗</a>
+  <span>By <a href="https://avinashistoocool.github.io/">Avinash Chandra Gupta</a></span>
 </footer>
 <script>
 (function(){
