@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy ? Sci-Synth</title>
+<meta name="description" content="Privacy policy of the Sci-Synth browser extension: no developer server, no analytics; PDF content goes only to the AI provider that the user configures.">
+<link rel="canonical" href="https://avinashistoocool.github.io/Sci-Synth/privacy.html">
+<meta property="og:title" content="Sci-Synth privacy policy">
+<meta property="og:description" content="No developer server, no analytics. PDF content goes only to the AI provider that you configure.">
+<meta property="og:url" content="https://avinashistoocool.github.io/Sci-Synth/privacy.html">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='14' fill='%23143040'/%3E%3Crect x='15' y='10' width='29' height='44' rx='4' fill='%23f0ece0'/%3E%3C/svg%3E">
+<style>*{box-sizing:border-box}body{margin:0;background:#f3efe4;color:#14232c;font:17px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif}
+nav.top,footer{display:flex;gap:18px;flex-wrap:wrap;padding:12px clamp(16px,4vw,40px);font:15px/1.4 "Segoe UI","Gill Sans",Candara,sans-serif;background:#143040}
+nav.top a,footer a{color:#e9eef0;text-decoration:none}nav.top a:hover,footer a:hover{text-decoration:underline}.sp{flex:1}
+main{max-width:820px;margin:0 auto;padding:30px clamp(16px,4vw,40px) 50px}h1{color:#143040;font-size:clamp(30px,5vw,42px);line-height:1.1}h2{color:#143040;margin-top:30px}
+a{color:#1f4c63}a:focus-visible{outline:3px solid #e87830;outline-offset:2px}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font:15px/1.45 "Segoe UI","Gill Sans",Candara,sans-serif;background:#fffdf6}
+th,td{border-bottom:1px solid #c9c0a8;padding:8px 10px;text-align:left;vertical-align:top}th{background:#e9e3d2}
+code{font:14px "Cascadia Mono",Consolas,monospace;background:#e9e3d2;padding:1px 4px;border-radius:3px;word-break:break-word}
+.src{font-size:14px;color:#56636b;margin-top:30px}</style>
+</head>
+<body>
+<nav class="top" aria-label="Site"><a href="https://avinashistoocool.github.io/">? avinash</a><a href="https://avinashistoocool.github.io/projects/">All projects</a><span class="sp"></span><a href="./">Sci-Synth</a><a href="https://github.com/Avinashistoocool/Sci-Synth">Source ?</a></nav>
+<main>
+<h1>Sci-Synth privacy policy</h1>
+<p>Effective date: 19 November 2026. Applies to the Sci-Synth browser extension, version 1.0.0 and later.</p>
+<h2>Summary</h2>
+<p>Sci-Synth has no developer server. It collects no analytics and does not track you.
+The developer receives none of your data.
+Sci-Synth sends PDF content only to the AI provider that you configure, and only to give you the explanations that you ask for.</p>
+<h2>Data that Sci-Synth handles</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Where it goes</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Settings, including your AI provider API key</td>
+<td><code>chrome.storage.local</code> in your browser profile</td>
+<td>To call the provider that you selected.</td>
+</tr>
+<tr>
+<td>PDF content: text excerpts near the item that you point at, your questions, earlier answers in the same thread, sampled page text for the document brief, and (if enabled) images of a page region or a scanned page</td>
+<td>The AI provider endpoint that you configure (for example OpenAI, Anthropic, Google Gemini, an OpenAI-compatible service, or a local Ollama server)</td>
+<td>To create the explanations, answers, page transcriptions and the document brief.</td>
+</tr>
+<tr>
+<td>Extracted page text, cached answers, document briefs, doubt notes and concept notes</td>
+<td>IndexedDB in your browser profile</td>
+<td>To make repeat questions fast and keep your notes.</td>
+</tr>
+<tr>
+<td>The PDF file</td>
+<td>Read by the viewer from the PDF's address or from the file that you open</td>
+<td>To show the PDF. Sci-Synth does not store the original PDF file.</td>
+</tr>
+<tr>
+<td>The PDF file (optional simulator only)</td>
+<td>The simulator backend address that you set, normally <code>http://localhost</code> on your own computer</td>
+<td>Only if you set a backend URL and select <strong>Extract equations</strong>. The backend that you run sends the PDF text to the Groq API with your own key.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sci-Synth does not sell data, does not use data for advertising or credit decisions, and does not transfer data to anyone other than the services that you configure.
+Your AI provider handles the data that it receives under its own privacy policy.</p>
+<h2>Permissions</h2>
+<p>Sci-Synth asks for access to a website only when you act: when you save a provider address, allow a PDF site, add a site to <strong>Sites that open in Sci-Synth</strong>, or save a simulator address.
+Sci-Synth does not read or change the content of web pages that you visit. The browser's built-in PDF viewer stays the default.</p>
+<h2>Your controls</h2>
+<ul>
+<li><strong>Clear cache</strong> deletes cached documents, pages and answers.</li>
+<li><strong>Delete all notes</strong> deletes doubt and concept notes.</li>
+<li>Remove the extension to delete all its local data, including your API key.</li>
+<li>Remove a site from the allowlist to give back its access.</li>
+<li>Data that was already sent to an AI provider stays under that provider's control.</li>
+</ul>
+<h2>Security</h2>
+<p>API keys are stored in <code>chrome.storage.local</code>. This storage is not encrypted by the extension. Do not use Sci-Synth on a shared browser profile with a key that you cannot revoke.</p>
+<h2>Children</h2>
+<p>Sci-Synth is not directed at children under 13.</p>
+<h2>Changes and contact</h2>
+<p>Changes to this policy appear in the source repository with a new effective date.
+Contact: open an issue at <a href="https://github.com/Avinashistoocool/Sci-Synth/issues" rel="noopener">https://github.com/Avinashistoocool/Sci-Synth/issues</a>.</p>
+<p class="src">Source: <a href="https://github.com/Avinashistoocool/Sci-Synth/blob/main/docs/PRIVACY.md">docs/PRIVACY.md</a>. This page is generated from that file.</p>
+</main>
+<footer><a href="https://avinashistoocool.github.io/">? avinash</a><a href="https://avinashistoocool.github.io/projects/">All projects</a><span class="sp"></span><a href="./">Sci-Synth</a><a href="https://github.com/Avinashistoocool/Sci-Synth">Source ?</a></footer>
+</body>
+</html>
